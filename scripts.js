@@ -1,7 +1,7 @@
 import { books, authors, genres, BOOKS_PER_PAGE } from './data.js'
 
 let page = 1;
-let matches = books
+let matches = books;
 
 // Class Definitions
 
@@ -18,7 +18,7 @@ class Book {
 }
 
 class Author {
-    constructor (id, name){
+    constructor (id, name) {
         this.id = id;
         this.name = name;
     }
@@ -31,18 +31,18 @@ class Genre {
     }
 }
 
-function init(){
+function init() {
     renderBooks(matches.slice(0, BOOKS_PER_PAGE));
     populateDropdowns();
     setupTheme();
     updateShowMoreButton();
-    addEventListeners();
+    addEventsListeners();
 }
 
 // Render Books
 
 function renderBooks(bookList) {
-    const bookListContainer = document.querySelector('[data-list-item]');
+    const bookListContainer = document.querySelector('[data-list-items]');
     bookListContainer.innerHTML = '';
     const fragment = document.createDocumentFragment();
 
@@ -55,7 +55,7 @@ function renderBooks(bookList) {
         <div class="preview_info">
             <h3 class="preview_title">${title}</h3>
             <div class="preview__author">${authors[author]}</div>
-        </div>`
+        </div>`;
         fragment.appendChild(element);
     });
 
@@ -64,8 +64,7 @@ function renderBooks(bookList) {
 }
 
 // Populate Dropdowns for Genre and Authors
-
-function populateDropdowns(){
+function populateDropdowns() {
     const genreDropdown = document.querySelector('[data-search-genres]');
     const authorDropdown = document.querySelector('[data-search-authors]');
     genreDropdown.innerHTML = '<option value="any">All Genres</option>';
@@ -88,24 +87,22 @@ function createOption(value, text) {
 
 function setupTheme() {
     const theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'day';
-    document.querySelector('[data-settings-theme]').value = theme;
-    setupTheme(theme);
+    document.querySelector('[data-settings-theme]').value === theme;
+    setTheme(theme);
 }
 
 function setTheme(theme) {
-    const darkColor = theme === 'night' ? '255, 255, 255' : '10, 10, 20';
-    const lightColor = theme === 'night' ? '10, 10, 20' : '255, 255, 255';
-    document.documentElement.style.setProperty('--color-dark', darkColor);
-    document.documentElement.style.setProperty('--color-light', lightColor);
-
+    document.documentElement.style.setProperty('--color-dark', theme === 'night' ? '255, 255, 255' : '10, 10, 20');
+    document.documentElement.style.setProperty('--color-light', theme === 'night' ? '10, 10, 20' : '255, 255, 255');
 }
 
 // Update "Show More" Button Text and State
 function updateShowMoreButton() {
     const button = document.querySelector('[data-list-button]');
     const remainingBooks = matches.length - page * BOOKS_PER_PAGE;
+    button.classList.add('list__button');
     button.disabled = remainingBooks <= 0;
-    button.innerHTML = `<span>Show more</span> <span class="list__remaining">{${Math.max(remainingBooks, 0)}})</span>`;
+    button.innerHTML = `<span>Show more</span> <span class="list__remaining">(${Math.max(remainingBooks, 0)})</span>`;
 
 }
 
@@ -139,7 +136,7 @@ function handleThemeChange(event) {
 function handleSearch(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
-    const filters =Object.fromEntries(formData);
+    const filters = Object.fromEntries(formData);
     matches = filterBooks(filters);
     page = 1;
     renderBooks(matches.slice(0, BOOKS_PER_PAGE));
@@ -157,16 +154,26 @@ function filterBooks(filters) {
     });
 } 
 
+// Show More Books
+function showMoreBooks() {
+    renderBooks(matches.slice(page * BOOKS_PER_PAGE, ++page * BOOKS_PER_PAGE));
+    updateShowMoreButton();
+}
+
 // Show Book Details
 function showBookDetails(event) {
     const preview = event.target.closest('[data-preview]');
     if (preview) {
-        const book = books.find(b => b.id === preview.getAttibute('data-preview'));
+        const book = books.find(b => b.id === preview.getAttribute('data-preview'));
         if (book) displayBookDetails(book);
     }
 }
 
+
 function displayBookDetails({author, image, title, description, published }) {
+    const activeOverlay = document.querySelector('[data-list-active]');
+    activeOverlay.classList.add('overlay', 'overlay__content');
+    activeOverlay.open = true;
     document.querySelector('[data-list-active]').open = true;
     document.querySelector('[data-list-blur]').src = image;
     document.querySelector('[data-list-image]').src = image;
