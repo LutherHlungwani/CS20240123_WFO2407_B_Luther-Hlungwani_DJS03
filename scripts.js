@@ -3,33 +3,76 @@ import { books, authors, genres, BOOKS_PER_PAGE } from './data.js'
 let page = 1;
 let matches = books;
 
-// Class Definitions
+// BookPreview Web Component Definition
+class BookPreview extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({mode: 'open'});
 
-class Book {
-    constructor({ author, id, image, title, genres, description,published}){
-        this.author = author;
-        this.id = id;
-        this.image = image;
-        this.title = title; 
-        this.genres = genres;
-        this.description = description;
-        this.published = published;
+        // Define the HTML template and CSS for the component
+        const template = document.createElement('template');
+        template.innerHTML = `
+        <style>
+            .preview {
+                display: flex;
+                align-items: center;
+                padding: 0.5rem 1rem;
+                background: rgba(var(--color-light), 1);
+                border-radius: 8px;
+                border: 1px solid rgba(var(--color-dark), 0.15);
+                cursor: pointer;
+                width: 100%;
+            }
+            .preview__image {
+                width: 48px;
+                height: 70px;
+                object-fit: cover;
+                border-radius: 2px;
+                margin-right: 1rem;
+            }
+            .preview__info {
+                display: flex;
+                flex-direction: column;
+            }
+            .preview__title {
+                font-weight: bold;
+                color: rgba(var(--color-dark), 0.8);
+                margin: 0;
+            }
+            .preview__author {
+                color: rgba(var(--color-dark), 0.4);
+            }
+        </style>
+        <div class="preview">
+            <img class="preview__image" src="" alt="Book Cover">
+            <div class="preview__info">
+                <h3 class="preview__title"></h3>
+                <div class="preview__author"></div>
+            </div>
+        </div>
+    `;
+    //Append template to shadow DOM
+    this.shadowRoot.appendChild(template.content.cloneNode(true));
+} 
+
+static get observedAttributes() {
+    return ['title', 'author', 'image'];
+
+}
+
+attributrChangedCallback(name, oldValue, newValue) {
+    const element = this.shadowRoot.querySelector(`.preview__${name}`);
+    if (name === 'image') {
+        element.src = newValue;
+    } else {
+        element.textContent = newValue;
     }
 }
 
-class Author {
-    constructor (id, name) {
-        this.id = id;
-        this.name = name;
-    }
 }
 
-class Genre {
-    constructor(id, name){
-        this.id = id;
-        this.name = name;
-    }
-}
+// Register BookPreview Web Component
+customElements.define('book-preview', BookPreview);
 
 function init() {
     renderBooks(matches.slice(0, BOOKS_PER_PAGE));
@@ -37,9 +80,10 @@ function init() {
     setupTheme();
     updateShowMoreButton();
     addEventsListeners();
+
 }
 
-// Render Books
+// Render Books Using the New BookPreview Component
 
 function renderBooks(bookList) {
     const bookListContainer = document.querySelector('[data-list-items]');
@@ -51,9 +95,9 @@ function renderBooks(bookList) {
         element.classList = 'preview';
         element.setAttribute('data-preview', id);
         element.innerHTML = `
-        <img class="preview_image" src="${image}" />
-        <div class="preview_info">
-            <h3 class="preview_title">${title}</h3>
+        <img class="preview__image" src="${image}" />
+        <div class="preview__info">
+            <h3 class="preview__title">${title}</h3>
             <div class="preview__author">${authors[author]}</div>
         </div>`;
         fragment.appendChild(element);
